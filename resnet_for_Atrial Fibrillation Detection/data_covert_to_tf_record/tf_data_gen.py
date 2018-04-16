@@ -15,7 +15,7 @@ import tensorflow as tf
 #%%
 
 data_path=os.getcwd()
-tf_dataname=os.path.join(data_path, 'coverted_tf_data/tf_data.tfrecords')
+tf_dataname=os.path.join(os.path.dirname(data_path), 'coverted_tf_data/tf_data.tfrecords')
 writer= tf.python_io.TFRecordWriter(tf_dataname) 
 
 
@@ -39,15 +39,65 @@ def _bytes_feature(value):
 for i in range(len(file_names)) :
     filepath=os.path.join(data_path,'data_folder',file_names[i])
     data = scio.loadmat(filepath) 
-    data2=np.float64(np.reshape(data['val'],[-1,1])) 
+    data2=np.float64(np.reshape(data['val'],[-1,])) 
     label2=np.array(label_dict[labels[i]],dtype='float64')
     #data2.dtype='float64'
-    
-    example = tf.train.Example(features=tf.train.Features(feature={  
-            'data_ECG': _bytes_feature(data2.tostring()),
-            'label': _bytes_feature(label2.tostring()) 
-        }))  
+    f,t,Sxx=signal.spectrogram(data2,nperseg=64,noverlap = 32) 
+    shape1 = np.shape(Sxx)
+    if np.array_equal(np.array([33,280]),shape1):
+        example = tf.train.Example(features=tf.train.Features(feature={  
+                'data_ECG': _bytes_feature(data2.tostring()),
+                'spectro_ECG': _bytes_feature(Sxx.tostring()),
+                'label': _bytes_feature(label2.tostring()) 
+            }))  
 
-    writer.write(example.SerializeToString())  #序列化为字符串
+        writer.write(example.SerializeToString())  #序列化为字符串
 writer.close()
+#%%
+split_ratio=0.7
+record_index=np.array(range(len(file_names)) )
+trianing_data_num=int(np.floor(len(file_names)*split_ratio))
+np.random.shuffle(record_index)
+trianing_data,testing_data=record_index[:trianing_data_num],record_index[trianing_data_num:]
+#%%
+tf_dataname=os.path.join(os.path.dirname(data_path), 'coverted_tf_data/training_data.tfrecords')
+writer= tf.python_io.TFRecordWriter(tf_dataname) 
+for i in trianing_data :
+    filepath=os.path.join(data_path,'data_folder',file_names[i])
+    data = scio.loadmat(filepath) 
+    data2=np.float64(np.reshape(data['val'],[-1,])) 
+    label2=np.array(label_dict[labels[i]],dtype='float64')
+    #data2.dtype='float64'
+    f,t,Sxx=signal.spectrogram(data2,nperseg=64,noverlap = 32) 
+    shape1 = np.shape(Sxx)
+    if np.array_equal(np.array([33,280]),shape1):
+        example = tf.train.Example(features=tf.train.Features(feature={  
+                'data_ECG': _bytes_feature(data2.tostring()),
+                'spectro_ECG': _bytes_feature(Sxx.tostring()),
+                'label': _bytes_feature(label2.tostring()) 
+            }))  
+
+        writer.write(example.SerializeToString())  #序列化为字符串
+writer.close()
+#%%
+tf_dataname=os.path.join(os.path.dirname(data_path), 'coverted_tf_data/testing_data.tfrecords')
+writer= tf.python_io.TFRecordWriter(tf_dataname) 
+for i in testing_data :
+    filepath=os.path.join(data_path,'data_folder',file_names[i])
+    data = scio.loadmat(filepath) 
+    data2=np.float64(np.reshape(data['val'],[-1,])) 
+    label2=np.array(label_dict[labels[i]],dtype='float64')
+    #data2.dtype='float64'
+    f,t,Sxx=signal.spectrogram(data2,nperseg=64,noverlap = 32) 
+    shape1 = np.shape(Sxx)
+    if np.array_equal(np.array([33,280]),shape1):
+        example = tf.train.Example(features=tf.train.Features(feature={  
+                'data_ECG': _bytes_feature(data2.tostring()),
+                'spectro_ECG': _bytes_feature(Sxx.tostring()),
+                'label': _bytes_feature(label2.tostring()) 
+            }))  
+
+        writer.write(example.SerializeToString())  #序列化为字符串
+writer.close()
+
 

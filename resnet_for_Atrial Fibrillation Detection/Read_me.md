@@ -5,9 +5,8 @@ Li Wei , Atif Khurshid
 
 You could download the training data from https://www.physionet.org/challenge/2017/
 
-Three steps
+Two steps
 
-1. convert data to tf_record format
-2. generate training and validation data set
-3. use resnet to train
+1. convert data to tf_record format ,generate training and testing dataset under data_convert_to_tf_record
+2. run train-test.py to run resnet
 
