@@ -117,7 +117,7 @@ sess.run(iterator2.initializer, feed_dict={ filenames1:fileinput1,filenames2:fil
 
 for i in range(15000):
     step=step+1
-    buchang_shuru=0.01
+    buchang_shuru=0.0001
     sess.run(train_step, feed_dict={keep_prob: 0.9,buchang:buchang_shuru,is_training:True})
     if step % 50 == 0: 
        print(step)
