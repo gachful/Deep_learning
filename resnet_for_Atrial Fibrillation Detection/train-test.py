@@ -54,7 +54,7 @@ images, labels = tf.cond(is_training,
 
 
       
-prediction=net_work.network1(images,True)
+prediction=net_work.network2(images,True)
 
 #%%
 
@@ -62,16 +62,17 @@ label_batch=tf.reshape(labels,[-1])
 label_batch = tf.cast(label_batch, tf.int64)
 cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=prediction,
                                                                        labels=label_batch, name='cross_entropy_per_example')
-cross_entropy_mean = tf.reduce_mean(cross_entropy, name='cross_entropy')
+cross_entropy_mean= tf.reduce_mean(cross_entropy, name='cross_entropy')
 
 #cross_entropy3= tf.reduce_mean(output_f2) 
+regularization_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
 
-
-
+full_loss = tf.add_n([cross_entropy_mean] + regularization_losses)
 #cross_entropy = tf.reduce_mean(tf.reduce_sum(tf.square(ys -prediction)))      # loss                                               
-                                               
-train_step = tf.train.AdamOptimizer(buchang).minimize(cross_entropy)
+global_step = tf.Variable(0, trainable=False)                                               
 
+opt = tf.train.MomentumOptimizer(buchang, momentum=0.9)
+train_op = opt.minimize(full_loss , global_step=global_step)
 
 #%%
 
@@ -114,14 +115,20 @@ sess.run(iterator2.initializer, feed_dict={ filenames1:fileinput1,filenames2:fil
     
     
 #%%
-
+buchang_shuru=0.05
 for i in range(15000):
     step=step+1
-    buchang_shuru=0.0001
-    sess.run(train_step, feed_dict={keep_prob: 0.9,buchang:buchang_shuru,is_training:True})
+    
+    if step==1000:
+        buchang_shuru=0.005
+    elif step==1750:
+        buchang_shuru=0.0005
+    elif step==2500:
+        buchang_shuru=0.00005    
+    sess.run(train_op, feed_dict={keep_prob: 1,buchang:buchang_shuru,is_training:True})
     if step % 50 == 0: 
        print(step)
-       print(sess.run(cross_entropy_mean , feed_dict={ filenames1:fileinput1,filenames2:fileinput2,keep_prob: 1,is_training:True} ))
+       print(sess.run(cross_entropy_mean, feed_dict={ filenames1:fileinput1,filenames2:fileinput2,keep_prob: 1,is_training:True} ))
        print(sess.run(cross_entropy_mean , feed_dict={ filenames1:fileinput1,filenames2:fileinput2,keep_prob: 1,is_training:False} ))
        #output= sess.run(h_fc1, feed_dict={xs: inpfinal , ys: label , keep_prob: 1})
        s1=sess.run(summary_op,feed_dict={ keep_prob: 1,is_training:True} )
