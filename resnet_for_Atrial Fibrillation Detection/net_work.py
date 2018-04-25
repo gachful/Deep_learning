@@ -1,7 +1,7 @@
 import sys
-
-#%%
-sys.path.append('E:/Yu/projects/mnist_template/resnet4')
+import os
+data_dir=os.getcwd()
+sys.path.append(data_dir)
 from resnet import *
 
 def network1(x,is_training):    
@@ -10,7 +10,7 @@ def network1(x,is_training):
                              num_classes=4,
                              is_training=is_training,
                              use_bias=(False),
-                             num_blocks=4                           
+                             num_blocks=14                          
                              )
     
     prediction=prediction
