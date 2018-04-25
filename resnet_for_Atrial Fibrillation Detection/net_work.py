@@ -10,7 +10,7 @@ def network1(x,is_training):
                              num_classes=4,
                              is_training=is_training,
                              use_bias=(False),
-                             num_blocks=14                          
+                             num_blocks=4                          
                              )
     
     prediction=prediction
